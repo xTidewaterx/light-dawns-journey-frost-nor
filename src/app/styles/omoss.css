@@ -1,0 +1,20 @@
+/* styles/omoss.css */
+.omoss-container {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+  font-family: 'Roboto', sans-serif;
+}
+
+.omoss-title {
+  font-size: 2rem;
+  color: #003366; /* Navy-certified */
+  margin-bottom: 1rem;
+}
+
+.omoss-text {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  color: #333;
+}
