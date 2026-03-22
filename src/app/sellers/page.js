@@ -19,6 +19,23 @@ const quicksand = Quicksand({
 
 const db = getFirestore(app);
 
+const TEMP_NORWAY_STOCK_PHOTOS = [
+  'https://images.pexels.com/photos/3222422/pexels-photo-3222422.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/1468379/pexels-photo-1468379.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/2050994/pexels-photo-2050994.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/2381069/pexels-photo-2381069.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/3763188/pexels-photo-3763188.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/1858175/pexels-photo-1858175.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/1680172/pexels-photo-1680172.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/532220/pexels-photo-532220.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1200',
+];
+
+const getTempSellerPhoto = (index) => TEMP_NORWAY_STOCK_PHOTOS[index % TEMP_NORWAY_STOCK_PHOTOS.length];
+
 export default function GetProfiles() {
   const [profiles, setProfiles] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -72,14 +89,14 @@ export default function GetProfiles() {
       </div>
 
       <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-        {filteredProfiles.map((profile) => (
-          <li key={profile.id}>
+        {filteredProfiles.map((profile, index) => (
+          <li key={profile.id} className="mb-18">
             <Link href={`/profile/${profile.id}`} className="block group">
               <div className="flex flex-col items-center space-y-4">
                 <img
                   alt={profile.displayName || 'Profile'}
-                  src={profile.photoURL || '/default-avatar.png'}
-                  className="w-[60vw] sm:w-[200px] md:w-[240px] lg:w-[280px] h-auto rounded-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  src={getTempSellerPhoto(index)}
+                  className="h-[180px] w-[160px] sm:h-[220px] sm:w-[200px] md:h-[245px] md:w-[220px] lg:h-[270px] lg:w-[240px] rounded-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <p className={`${quicksand.className} text-lg font-medium text-gray-900 text-center`}>
                   {profile.displayName || 'Uten navn'}
