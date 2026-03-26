@@ -78,7 +78,7 @@ export default function MainBanner() {
         clone.remove();
         target.style.opacity = "1";
 
-        const lines = ["HÅNDLAGET", "I NORD-NORGE,", "TIL DEG."];
+        const lines = ["HÅNDLAGET I", "NORD-NORGE,", "TIL DEG."];
         const container = revealRef.current;
         if (!container) return;
 
@@ -133,7 +133,9 @@ export default function MainBanner() {
     const updateFont = () => {
       const width = window.innerWidth;
       let fontSize;
-      const isMobile = width <= 768; // Define mobile breakpoint
+      const isMobile = width < 768;
+      const isDesktop = width >= 1024;
+      const isLargeDesktop = width >= 1920;
 
       if (isMobile) {
         fontSize = Math.max(width / 150, 3.2);
@@ -142,16 +144,37 @@ export default function MainBanner() {
       } else {
         fontSize = Math.max((width / 140) * 0.48, 2.8);
       }
-      
+
       // Apply 20% size reduction on phone screens
       if (isMobile) {
         fontSize *= 0.8; // Reduce by 20%
       }
 
+      // Reduce only the large yellow banner text by 40% on medium screens.
+      if (width >= 768 && width < 1024) {
+        fontSize *= 0.6;
+      }
+
+      // On all desktop/PC screens, keep the yellow text visibly smaller.
+      if (isDesktop) {
+        // Keep desktop baseline at 40% smaller.
+        fontSize *= 0.6;
+
+        if (isLargeDesktop) {
+          // On very large displays (e.g. 55-inch), grow proportionally to viewport.
+          const largeScreenBoost = Math.min(width / 1920, 1.6);
+          fontSize *= largeScreenBoost;
+          fontSize = Math.min(Math.max(fontSize, 4.8), 9.2);
+        } else {
+          fontSize = Math.min(Math.max(fontSize, 2.2), 4.2);
+        }
+      }
+
       let lineHeightMultiplier;
       if (width < 768) lineHeightMultiplier = 1.02;
       else if (width < 1600) lineHeightMultiplier = 1.08;
-      else lineHeightMultiplier = 1.1;
+      else if (width < 2500) lineHeightMultiplier = 1.1;
+      else lineHeightMultiplier = 1.14;
 
       const lineHeight = fontSize * lineHeightMultiplier;
       setFontStyle({ fontSize: `${fontSize}rem`, lineHeight: `${lineHeight}rem` });
@@ -185,11 +208,11 @@ export default function MainBanner() {
         </h2>
 
         <div className="absolute inset-0 z-30 flex items-center justify-center px-4 sm:px-8 lg:px-12">
-          <div className="w-full max-w-7xl flex justify-center md:justify-end">
-            <div className="w-full md:w-auto text-center md:text-right">
+          <div className="w-full max-w-7xl [@media(min-width:1920px)]:max-w-none flex justify-center md:justify-end">
+            <div className="w-full md:w-auto text-center md:text-right [@media(min-width:1920px)]:mr-20 [@media(min-width:2500px)]:mr-28">
               <div
                 ref={revealRef}
-                className={`${roboto.className} p-4 md:p-0 relative font-semibold tracking-[0.02em] drop-shadow-[0_4px_14px_rgba(0,0,0,0.28)]`}
+                className={`${roboto.className} p-4 md:py-0 md:pl-0 md:pr-8 lg:pr-12 xl:pr-16 [@media(min-width:2500px)]:pr-24 relative font-semibold tracking-[0.02em] drop-shadow-[0_4px_14px_rgba(0,0,0,0.28)] md:translate-x-8 lg:translate-x-12 [@media(min-width:2500px)]:translate-x-24`}
                 style={{
                   color: "#ffe604ff",
                   fontSize: fontStyle.fontSize,
@@ -200,7 +223,13 @@ export default function MainBanner() {
                   wordBreak: "keep-all",
                   textTransform: "uppercase",
                 }}
-              ></div>
+              >
+                <div aria-hidden="true" style={{ opacity: 0 }}>
+                  <div style={{ display: "block", whiteSpace: "nowrap" }}>HÅNDLAGET I</div>
+                  <div style={{ display: "block", whiteSpace: "nowrap" }}>NORD-NORGE,</div>
+                  <div style={{ display: "block", whiteSpace: "nowrap" }}>TIL DEG.</div>
+                </div>
+              </div>
 
               <p
                 ref={subtextRef}
