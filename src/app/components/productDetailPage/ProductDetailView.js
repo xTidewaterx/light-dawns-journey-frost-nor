@@ -15,7 +15,7 @@ export default function ProductDetailView({ completeProduct, id }) {
 
   return (
     <div className="grid grid-cols-1 gap-8 items-start lg:grid-cols-[1.6fr_1fr]">
-      <div className="flex w-full flex-col gap-4">
+      <div className="flex w-full flex-col gap-4 lg:max-w-[560px] xl:max-w-[600px]">
         <ImageCarousel images={completeProduct.images} productName={completeProduct.name} />
       </div>
 

@@ -6,8 +6,10 @@ import "@fortawesome/fontawesome-free/css/all.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faHeart } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
+import { useCart } from "react-use-cart";
 
 export default function Navbar() {
+  const { totalItems } = useCart();
   const pathname = usePathname();
   const isHomePage = pathname === "/";
   const isProductDetailPage = pathname.startsWith("/products/") && pathname !== "/products";
@@ -16,7 +18,12 @@ export default function Navbar() {
   const [logoSize, setLogoSize] = useState(36);
   const [textPaddingRight, setTextPaddingRight] = useState(8);
   const [hideNavbar, setHideNavbar] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const navbarRef = useRef(null);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     const updateSizes = () => {
@@ -162,13 +169,18 @@ export default function Navbar() {
 
             <Link
               href="/products/cart"
-              className="hover:bg-yellow-400 hover:text-black rounded-full px-4 py-1 group transition-all flex items-center justify-center no-underline hover:no-underline"
+              className="relative hover:bg-yellow-400 hover:text-black rounded-full px-4 py-1 group transition-all flex items-center justify-center no-underline hover:no-underline"
             >
               <img
                 className={pathname !== '/' ? 'invert w-5 min-w-[20px] min-h-[20px] ' : 'w-5 min-w-[20px] min-h-[20px] '}
                 src="/shoppingCartIconWhite.png"
                 alt="Cart"
               />
+              {hasMounted && totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] leading-4 text-center font-semibold">
+                  {totalItems}
+                </span>
+              )}
             </Link>
 
             <Link
@@ -209,11 +221,18 @@ export default function Navbar() {
             {
               href: "/products/cart",
               label: (
-                <img
-                  className="w-6 inline-block align-middle"
-                  src="/shoppingCartIconWhite.png"
-                  alt="Cart"
-                />
+                <span className="relative inline-flex">
+                  <img
+                    className="w-6 inline-block align-middle"
+                    src="/shoppingCartIconWhite.png"
+                    alt="Cart"
+                  />
+                  {hasMounted && totalItems > 0 && (
+                    <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] leading-4 text-center font-semibold">
+                      {totalItems}
+                    </span>
+                  )}
+                </span>
               ),
             },
             { href: "/profile", label: <FontAwesomeIcon icon={faUser} className="text-2xl" /> },

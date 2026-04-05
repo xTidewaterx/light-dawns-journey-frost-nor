@@ -316,7 +316,7 @@ const uploadFilesToFirebase = async () => {
           }`}
         >
           <div className="w-10 h-10 rounded-full bg-[#001F54] animate-pulse"></div>
-          <span className="text-[#001F54] font-semibold">Product uploaded</span>
+          <span className="text-[#001F54] font-semibold">Produktet er publisert</span>
         </div>
       )}
 
@@ -349,12 +349,12 @@ const uploadFilesToFirebase = async () => {
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Product Name
+              Produktnavn
             </label>
             <input
               type="text"
               name="name"
-              placeholder="Enter product name"
+              placeholder="Skriv inn produktnavn"
               value={product.name}
               onChange={(e) => setProduct({ ...product, name: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -363,11 +363,11 @@ const uploadFilesToFirebase = async () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
+              Beskrivelse
             </label>
             <textarea
               name="description"
-              placeholder="Write a short description"
+              placeholder="Skriv en kort beskrivelse"
               value={product.description}
               onChange={(e) =>
                 setProduct({ ...product, description: e.target.value })
@@ -379,12 +379,12 @@ const uploadFilesToFirebase = async () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Price
+              Pris
             </label>
             <input
               type="text"
               name="price"
-              placeholder="e.g. 199.99"
+              placeholder="f.eks. 199,99"
               value={product.price}
               onChange={(e) => setProduct({ ...product, price: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -393,7 +393,7 @@ const uploadFilesToFirebase = async () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Upload Images
+              Last opp bilder
             </label>
             <input
               type="file"
@@ -406,14 +406,14 @@ const uploadFilesToFirebase = async () => {
 
           <div>
             <h3 className="text-md font-medium text-gray-800 mb-2">
-              Product Images
+              Produktbilder
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 border border-gray-200 rounded-lg p-4 max-h-[400px] overflow-y-auto">
               {product?.images?.map((image, index) => (
                 <div key={index} className="relative">
                   <img
                     src={image}
-                    alt={`Product ${index}`}
+                    alt={`Produkt ${index}`}
                     className="w-full h-48 object-cover rounded-lg shadow-sm"
                   />
                   <button
@@ -438,10 +438,10 @@ const uploadFilesToFirebase = async () => {
               isUploading ? "bg-blue-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {isUploading ? "Uploading..." : productValue?.currentProduct ? "Update Product" : "Add Product"}
+            {isUploading ? "Laster opp..." : productValue?.currentProduct ? "Oppdater produkt" : "Publiser produkt"}
           </button>
           {isUploading && (
-            <div className="mt-2 text-sm text-blue-600 font-medium">Uploading images and saving product, this may take 10-20 seconds...</div>
+            <div className="mt-2 text-sm text-blue-600 font-medium">Laster opp bilder og lagrer produkt, dette kan ta 10-20 sekunder...</div>
           )}
         </div>
       </form>
