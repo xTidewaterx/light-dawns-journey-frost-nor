@@ -92,7 +92,7 @@ export default function Navbar() {
       <div className="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="group relative flex items-center m-0 no-underline hover:no-underline">
-            <span className="absolute left-0 top-0 h-full w-full bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:w-[130%] transition-[opacity,width] duration-300 ease-out -z-10" />
+            <span className="absolute left-0 top-0 h-full w-full bg-amber-300 rounded-full opacity-0 group-hover:opacity-100 group-hover:w-[130%] transition-[opacity,width] duration-300 ease-out -z-10" />
             <div
               className="relative flex items-center justify-center z-10"
               style={{

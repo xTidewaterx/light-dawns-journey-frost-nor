@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Stripe from "stripe";
 
-import CartWrapper from "../../../app/utils/cartWrapper";
 import PostProduct from "../../post/PostProduct";
 
 import ProductDetailView from "../../components/productDetailPage/ProductDetailView";
@@ -54,7 +53,7 @@ export default async function ProductDetail({ params, searchParams }) {
   if (searchParams?.saved === "true") redirect(`/products/${id}?edit=false`);
 
   return (
-    <CartWrapper>
+    <>
       <div className="bg-slate-50 px-4 pt-28 pb-12 sm:pt-32 sm:pb-16">
         <div className="mx-auto w-full max-w-6xl">
           <div className="bg-white rounded-3xl shadow-none p-5 sm:p-8">
@@ -67,6 +66,6 @@ export default async function ProductDetail({ params, searchParams }) {
         </div>
       </div>
       <GetProducts />
-    </CartWrapper>
+    </>
   );
 }
