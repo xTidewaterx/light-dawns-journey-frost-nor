@@ -36,8 +36,8 @@ export default function UserRow() {
   }, []);
 
   return (
-    <div className="pb-12 md:pb-16 lg:pb-20">
-      <section className="w-full py-12 mb-12 overflow-x-auto custom-scrollbar">
+    <div className="pt-2 pb-8 md:pb-10 lg:pb-12">
+      <section className="w-full py-12 pb-14 overflow-x-auto custom-scrollbar">
         <div className="flex items-end justify-between gap-4 pl-4 pr-4 mb-10">
           <div>
             <h2 className="text-3xl text-slate-900 tracking-tight leading-tight font-poppins">
