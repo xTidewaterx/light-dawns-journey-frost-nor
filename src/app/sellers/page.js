@@ -76,7 +76,7 @@ export default function GetProfiles() {
             </Link>
           </div>
         </OnboardingNotice>
-      </div>
+      </div>about:blank#blocked
 
       <div className="mb-10 flex justify-center">
         <input

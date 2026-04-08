@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { auth } from "../../firebase/firebaseConfig";
 
 export default function CreateShipmentButton(shippingData) {
   const [shipmentDataStatus, setShipmentDataStatus] = useState(0);
@@ -58,9 +59,21 @@ export default function CreateShipmentButton(shippingData) {
       };
 
       // ✅ Send to backend
+      const currentUser = auth.currentUser;
+      const idToken = currentUser ? await currentUser.getIdToken() : null;
+
+      if (!idToken) {
+        console.error("❌ No authenticated user token found for shipment request.");
+        setShipmentDataStatus(2);
+        return;
+      }
+
       const response = await fetch("/api/shipment", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
         body: JSON.stringify(shipmentData),
       });
 
