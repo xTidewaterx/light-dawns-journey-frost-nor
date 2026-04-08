@@ -46,7 +46,7 @@ export default function Home() {
       <MainBanner />
 
       <section className="px-4 sm:px-8 lg:px-12 py-[3.25rem] sm:py-[4.5rem] bg-[#0a1f44]">
-        <div className="mx-auto max-w-6xl overflow-hidden rounded-[26px] bg-[#0a1f44] md:grid md:grid-cols-2">
+        <div className="mx-auto max-w-6xl overflow-hidden rounded-[26px] bg-[#0a1f44] lg:grid lg:grid-cols-2">
           <div className="p-6 sm:p-8 lg:p-10">
             <p className="text-xs sm:text-sm uppercase tracking-[0.18em] text-blue-100/85 mb-3">
               Skapt i Nord-Norge
