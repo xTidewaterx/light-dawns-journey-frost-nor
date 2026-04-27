@@ -187,7 +187,7 @@ export default function MainBanner() {
 
   return (
     <div className="relative z-10">
-      <div className="mainBanner-cover bg-cover bg-center w-full min-h-[50vw] sm:min-h-[40vw] md:min-h-[63vw] [@media(min-width:900px)and(max-width:1440px)]:min-h-[78vw] relative flex flex-col items-center justify-center overflow-visible">
+      <div className="mainBanner-cover bg-cover bg-center w-full aspect-square min-h-0 sm:aspect-auto sm:min-h-[40vw] md:min-h-[63vw] [@media(min-width:900px)and(max-width:1440px)]:min-h-[78vw] relative flex flex-col items-center justify-center overflow-visible">
         <Image
         //  src="https://firebasestorage.googleapis.com/v0/b/norland-a7730.appspot.com/o/products%2Fe4f4bb0f-812f-4dfc-b87b-897a088d1687?alt=media&token=b54ead1b-cbfd-40bd-b9bf-6fe98425d39a"
           src="https://firebasestorage.googleapis.com/v0/b/norland-a7730.appspot.com/o/images%2Focean%20traveller%20v%C3%A5gnes%20troms%C3%B8%20northern%20spirit.jpg?alt=media&token=19828aad-263c-4cf2-9cd4-455253c5a3d7"

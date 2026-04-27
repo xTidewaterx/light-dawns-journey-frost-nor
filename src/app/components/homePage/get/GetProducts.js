@@ -218,7 +218,13 @@ export default function GetProducts({ variant = 'home' }) {
   ));
 
   return (
-    <div className={`w-full ${isProductsPage ? 'pb-16' : 'py-10'}`}>
+    <div
+      className={`w-full ${
+        isProductsPage
+          ? 'pb-16'
+          : 'pt-10 pb-14 sm:pb-16'
+      }`}
+    >
       {isProductsPage ? (
         <section className="relative overflow-hidden rounded-[2rem] border border-slate-200/80 bg-gradient-to-br from-[#f5f8fb] via-white to-[#e9f1f8] px-6 py-8 sm:px-8 sm:py-10 lg:px-10">
           <div className="pointer-events-none absolute -right-12 -top-16 h-40 w-40 rounded-full bg-[#bfd7ec]/40 blur-2xl" />
@@ -291,11 +297,11 @@ export default function GetProducts({ variant = 'home' }) {
         </section>
       ) : (
         <div className="flex items-end justify-between gap-4 px-4 sm:px-4 lg:px-6 pb-2">
-          <div className="pt-0 mt-4 bg-white/80 px-3 sm:px-4 lg:px-6 sm:py-3 rounded-xl text-left">
-            <h2 className="text-[clamp(1.6rem,3vw,2.4rem)] text-slate-800 tracking-tight leading-tight">
+          <div className="pt-0 mt-4 px-3 sm:px-4 lg:px-6 sm:py-3 text-left">
+            <h2 className="text-[clamp(1.6rem,3vw,2.4rem)] text-[#0a1f44] tracking-tight leading-tight">
               Utvalgte produkter
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 mt-1">
+            <p className="text-sm sm:text-base text-[#1f355f] mt-1">
               Håndplukket fra nordnorske skaperprofiler.
             </p>
           </div>

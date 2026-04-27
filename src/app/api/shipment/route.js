@@ -1,10 +1,89 @@
 import { NextResponse } from "next/server";
+import { authAdmin, db } from "../../lib/firebaseAdmin";
 
 const SHIPMONDO_ENDPOINT = "https://sandbox.shipmondo.com/api/public/v3/shipments";
+
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 8;
+const rateLimitStore = new Map();
+
+function getClientIp(req) {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (!forwarded) return "unknown";
+  return forwarded.split(",")[0]?.trim() || "unknown";
+}
+
+function isRateLimited(key) {
+  const now = Date.now();
+  const existing = rateLimitStore.get(key);
+
+  if (!existing || now - existing.windowStart > RATE_LIMIT_WINDOW_MS) {
+    rateLimitStore.set(key, { count: 1, windowStart: now });
+    return false;
+  }
+
+  existing.count += 1;
+  rateLimitStore.set(key, existing);
+
+  return existing.count > RATE_LIMIT_MAX_REQUESTS;
+}
+
+async function verifyShipmentCaller(req, shipmentData) {
+  const internalSecret = process.env.SHIPMENT_INTERNAL_SECRET;
+  const internalHeader = req.headers.get("x-internal-shipment-secret");
+
+  if (internalSecret && internalHeader && internalHeader === internalSecret) {
+    return { mode: "internal", uid: "internal" };
+  }
+
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+
+  try {
+    const decoded = await authAdmin.verifyIdToken(authHeader.slice(7));
+    const userDoc = await db.collection("users").doc(decoded.uid).get();
+    const role = userDoc.exists ? userDoc.data()?.role : null;
+
+    if (role === "admin") {
+      return { mode: "admin", uid: decoded.uid, email: decoded.email || "" };
+    }
+
+    const receiver = Array.isArray(shipmentData?.parties)
+      ? shipmentData.parties.find((p) => p?.type === "receiver")
+      : null;
+
+    const receiverEmail = (receiver?.email || "").toString().trim().toLowerCase();
+    const callerEmail = (decoded.email || "").toString().trim().toLowerCase();
+
+    if (receiverEmail && callerEmail && receiverEmail === callerEmail) {
+      return { mode: "owner", uid: decoded.uid, email: callerEmail };
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 export async function POST(req) {
   try {
     const shipmentData = await req.json();
+
+    const caller = await verifyShipmentCaller(req, shipmentData);
+    if (!caller) {
+      return NextResponse.json(
+        { error: "Unauthorized. Provide valid token and be admin or shipment owner." },
+        { status: 401 }
+      );
+    }
+
+    const rateLimitKey = `${caller.uid || "anon"}:${getClientIp(req)}`;
+    if (isRateLimited(rateLimitKey)) {
+      return NextResponse.json(
+        { error: "Too many shipment requests. Please wait and try again." },
+        { status: 429 }
+      );
+    }
 
     // ✅ Validate parties
     if (

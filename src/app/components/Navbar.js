@@ -6,8 +6,10 @@ import "@fortawesome/fontawesome-free/css/all.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faHeart } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
+import { useCart } from "react-use-cart";
 
 export default function Navbar() {
+  const { totalItems } = useCart();
   const pathname = usePathname();
   const isHomePage = pathname === "/";
   const isProductDetailPage = pathname.startsWith("/products/") && pathname !== "/products";
@@ -16,7 +18,12 @@ export default function Navbar() {
   const [logoSize, setLogoSize] = useState(36);
   const [textPaddingRight, setTextPaddingRight] = useState(8);
   const [hideNavbar, setHideNavbar] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const navbarRef = useRef(null);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     const updateSizes = () => {
@@ -85,7 +92,7 @@ export default function Navbar() {
       <div className="max-w-9xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="group relative flex items-center m-0 no-underline hover:no-underline">
-            <span className="absolute left-0 top-0 h-full w-full bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:w-[130%] transition-[opacity,width] duration-300 ease-out -z-10" />
+            <span className="absolute left-0 top-0 h-full w-full bg-amber-300 rounded-full opacity-0 group-hover:opacity-100 group-hover:w-[130%] transition-[opacity,width] duration-300 ease-out -z-10" />
             <div
               className="relative flex items-center justify-center z-10"
               style={{
@@ -162,13 +169,18 @@ export default function Navbar() {
 
             <Link
               href="/products/cart"
-              className="hover:bg-yellow-400 hover:text-black rounded-full px-4 py-1 group transition-all flex items-center justify-center no-underline hover:no-underline"
+              className="relative hover:bg-yellow-400 hover:text-black rounded-full px-4 py-1 group transition-all flex items-center justify-center no-underline hover:no-underline"
             >
               <img
                 className={pathname !== '/' ? 'invert w-5 min-w-[20px] min-h-[20px] ' : 'w-5 min-w-[20px] min-h-[20px] '}
                 src="/shoppingCartIconWhite.png"
                 alt="Cart"
               />
+              {hasMounted && totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] leading-4 text-center font-semibold">
+                  {totalItems}
+                </span>
+              )}
             </Link>
 
             <Link
@@ -209,11 +221,18 @@ export default function Navbar() {
             {
               href: "/products/cart",
               label: (
-                <img
-                  className="w-6 inline-block align-middle"
-                  src="/shoppingCartIconWhite.png"
-                  alt="Cart"
-                />
+                <span className="relative inline-flex">
+                  <img
+                    className="w-6 inline-block align-middle"
+                    src="/shoppingCartIconWhite.png"
+                    alt="Cart"
+                  />
+                  {hasMounted && totalItems > 0 && (
+                    <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] leading-4 text-center font-semibold">
+                      {totalItems}
+                    </span>
+                  )}
+                </span>
               ),
             },
             { href: "/profile", label: <FontAwesomeIcon icon={faUser} className="text-2xl" /> },

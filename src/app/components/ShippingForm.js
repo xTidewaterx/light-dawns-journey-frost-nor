@@ -25,13 +25,15 @@ export default function ShippingForm({ onShippingSelected }) {
     district: "",
     city: "",
     postcode: "",
-    country: "",
+    country: "DK", // Default to Denmark
   });
   const typingTimeout = useRef(null);
+  const postalCodeTimeout = useRef(null);
+  const shippingDataRef = useRef(shippingData);
 
   // Convert country names to ISO country codes
   function normalizeCountryCode(countryInput) {
-    if (!countryInput) return "NO";
+    if (!countryInput) return "DK"; // Default to DK, not NO
     const input = countryInput.toString().trim().toUpperCase();
     
     const countryMap = {
@@ -49,14 +51,27 @@ export default function ShippingForm({ onShippingSelected }) {
       'FI': 'FI',
     };
 
-    return countryMap[input] || input.slice(0, 2).toUpperCase() || "NO";
+    return countryMap[input] || input.slice(0, 2).toUpperCase() || "DK"; // Default to DK
   }
 
   async function fetchSuggestions(q) {
     if (q.length < 3) return setAddressSuggestions([]);
     try {
-      const res = await fetch(`/api/address?q=${encodeURIComponent(q)}`);
+      // Add Denmark context if user is likely searching for Danish addresses
+      let searchQuery = q;
+      if (!q.toLowerCase().includes('denmark') && 
+          !q.toLowerCase().includes('danmark') &&
+          !q.toLowerCase().includes('norge') &&
+          !q.toLowerCase().includes('sweden') &&
+          !q.toLowerCase().includes('sverige')) {
+        // If no country specified, add Denmark to help narrow results
+        // This improves accuracy for Danish addresses
+        searchQuery = `${q}, Denmark`;
+      }
+      
+      const res = await fetch(`/api/address?q=${encodeURIComponent(searchQuery)}`);
       const data = await res.json();
+      console.log("Address suggestions received:", data?.length || 0);
       if (Array.isArray(data)) setAddressSuggestions(data.slice(0, 5));
       else setAddressSuggestions([]);
     } catch {
@@ -64,30 +79,79 @@ export default function ShippingForm({ onShippingSelected }) {
     }
   }
 
+  // Fetch postal code information using free Nominatim API
+  async function fetchPostalCodeInfo(postalCode, countryCode = "DK") {
+    // This function is no longer used - postal code is entered manually
+    // Kept for backward compatibility if needed later
+    return;
+  }
+
   function handleSelect(s) {
     setQuery(s.display_name);
     setAddressSuggestions([]);
+    
+    console.log("Selected address suggestion:", s); // Debug log
+    
     if (s.address) {
+      // Normalize country code from address object
+      const countryCode = normalizeCountryCode(s.address.country_code || s.address.country || "DK");
+      
+      // Extract postcode - try multiple field names
+      const postcode = s.address.postcode || 
+                      s.address.postal_code || 
+                      s.address.zipcode || 
+                      "";
+      
+      console.log("✅ Address object found - country:", countryCode, "postcode:", postcode);
+      
       setShippingData(prev => ({
         ...prev,
-        street: s.address.road || "",
+        street: s.address.road || s.address.name || "",
         streetNumber: s.address.house_number || "",
-        district: s.address.suburb || s.address.neighbourhood || "",
+        district: s.address.suburb || s.address.neighbourhood || s.address.hamlet || "",
         city: s.address.city || s.address.town || s.address.village || "",
-        postcode: s.address.postcode || "",
-        country: (s.address.country_code || s.address.country || "").toString().toUpperCase(),
+        postcode: postcode,
+        country: countryCode,
       }));
+      
+      // If we got a postcode from address object, auto-fetch service points
+      if (postcode && postcode.length >= 4) {
+        console.log("📍 Auto-fetching service points for postcode:", postcode, countryCode);
+        setTimeout(() => fetchServicePoints(postcode, countryCode), 500);
+      }
     } else {
+      // Fallback: parse display_name string
+      console.log("⚠️ No address object, parsing display_name:", s.display_name);
+      
+      // Try to extract postcode from display_name - often formatted as "Street, PostcodeCity, Country"
+      let postcode = "";
+      const postcodeMatch = s.display_name.match(/\b(\d{4,5})\b/);
+      if (postcodeMatch) {
+        postcode = postcodeMatch[1];
+        console.log("Extracted postcode from display_name:", postcode);
+      }
+      
       const parts = s.display_name.split(",").map(p => p.trim());
+      const lastPart = parts[parts.length - 1] || "";
+      const countryCode = normalizeCountryCode(lastPart);
+      
+      console.log("Parsed address parts:", { parts, lastPart, countryCode });
+      
       setShippingData(prev => ({
         ...prev,
         streetNumber: parts[0] || "",
         street: parts[1] || "",
         district: parts[2] || "",
-        city: parts[4] || "",
-        postcode: parts[6] || "",
-        country: (parts[7] || "").toString().toUpperCase(),
+        city: parts[3] || parts[4] || "",
+        postcode: postcode,
+        country: countryCode,
       }));
+      
+      // If we extracted postcode, auto-fetch service points
+      if (postcode && postcode.length >= 4) {
+        console.log("📍 Auto-fetching service points for postcode:", postcode, countryCode);
+        setTimeout(() => fetchServicePoints(postcode, countryCode), 500);
+      }
     }
   }
 
@@ -130,20 +194,36 @@ export default function ShippingForm({ onShippingSelected }) {
     fetchServicePoints(finalShippingData.postcode, normalizedCountry);
   }
 
-  async function fetchServicePoints(postcode, country_code = "NO") {
+  async function fetchServicePoints(postcode, country_code = "DK") {
     setLoadingServicePoints(true);
     setServiceError(null);
     try {
+      console.log("🚀 Fetching service points for:", { postcode, country_code });
       const res = await fetch("/api/shipmondo/service-points", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ postcode, country_code }),
       });
       const data = await res.json();
-      if (data.options) setServicePoints(data.options);
-      else setServicePoints([]);
+      console.log("✅ Service points response:", data);
+      if (data.options && data.options.length > 0) {
+        console.log("📍 Found", data.options.length, "service points");
+        setServicePoints(data.options);
+        
+        // Auto-fill city and district from first service point
+        const firstPoint = data.options[0];
+        console.log("📍 Auto-filling from first service point:", { city: firstPoint.city, district: firstPoint.city });
+        setShippingData(prev => ({
+          ...prev,
+          city: firstPoint.city || prev.city,
+          district: firstPoint.city || prev.district,
+        }));
+      } else {
+        console.warn("⚠️ No options in response");
+        setServicePoints([]);
+      }
     } catch (err) {
-      console.error("Failed to fetch service points:", err);
+      console.error("❌ Failed to fetch service points:", err);
       setServiceError(String(err));
       setServicePoints([]);
     } finally {
@@ -188,6 +268,11 @@ export default function ShippingForm({ onShippingSelected }) {
       // ignore
     }
   }, []);
+
+  // Keep ref updated with current shipping data
+  useEffect(() => {
+    shippingDataRef.current = shippingData;
+  }, [shippingData]);
 
   return (
     <div className="max-w-xl mx-auto p-6">
@@ -234,12 +319,40 @@ export default function ShippingForm({ onShippingSelected }) {
               ))}
             </motion.ul>
           )}
-          {['street','streetNumber','district','city','postcode','country'].map(key => (
+          {[
+            { key: 'street', label: 'Gate' },
+            { key: 'streetNumber', label: 'Husnummer' },
+            { key: 'district', label: 'Distrikt' },
+            { key: 'city', label: 'By' },
+            { key: 'country', label: 'Land' }
+          ].map(({ key, label }) => (
             <div key={key}>
-              <label className="capitalize">{key}</label>
+              <label>{label}</label>
               <input className={inputClasses} value={shippingData[key]} onChange={e => setShippingData({ ...shippingData, [key]: e.target.value })} />
             </div>
           ))}
+          <div>
+            <label>Postnummer</label>
+            <input 
+              className={inputClasses} 
+              value={shippingData.postcode} 
+              onChange={e => {
+                const newPostcode = e.target.value;
+                setShippingData(prev => ({ ...prev, postcode: newPostcode }));
+                
+                // Debounce postal code lookup
+                if (postalCodeTimeout.current) clearTimeout(postalCodeTimeout.current);
+                postalCodeTimeout.current = setTimeout(() => {
+                  if (newPostcode.length >= 4) {
+                    console.log("User entered postal code:", newPostcode);
+                    const country = shippingDataRef.current.country || "DK";
+                    fetchServicePoints(newPostcode, country);
+                  }
+                }, 800);
+              }}
+              placeholder="Skriv inn postnummer..."
+            />
+          </div>
           <button onClick={handleSave} className={buttonClasses}>Lagre</button>
         </motion.div>
       )}
@@ -284,9 +397,9 @@ export default function ShippingForm({ onShippingSelected }) {
               {createShipmentStatus && (
                 <div className="mt-2 text-sm">
                   {createShipmentStatus.status === 1 ? (
-                    <span className="text-green-600">Shipment created ✅</span>
+                    <span className="text-green-600">Forsendelse opprettet ✅</span>
                   ) : (
-                    <span className="text-red-600">Shipment failed ❌</span>
+                    <span className="text-red-600">Forsendelse mislyktes ❌</span>
                   )}
                 </div>
               )}

@@ -131,7 +131,10 @@ export async function POST(req) {
 
           const resp = await fetch("/api/shipment", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "x-internal-shipment-secret": process.env.SHIPMENT_INTERNAL_SECRET || "",
+            },
             body: JSON.stringify(shipmentRequest),
           });
 
