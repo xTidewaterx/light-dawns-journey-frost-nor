@@ -140,6 +140,8 @@ export default function ProfilePage() {
   const [message, setMessage] = useState('');
   const [profileThemeId, setProfileThemeId] = useState('fjord');
   const [productCount, setProductCount] = useState(0);
+  const [creatorProducts, setCreatorProducts] = useState([]);
+  const [loadingCreatorProducts, setLoadingCreatorProducts] = useState(true);
 
   const storage = getStorage();
   const chatSectionRef = useRef(null);
@@ -204,24 +206,27 @@ export default function ProfilePage() {
   }, [uid]);
 
   useEffect(() => {
-    async function fetchProductCount() {
+    async function fetchCreatorProducts() {
       if (!uid) return;
+      setLoadingCreatorProducts(true);
+
       try {
-        const res = await fetch('/api/products');
+        const res = await fetch(`/api/creatorProducts?creator=${encodeURIComponent(uid)}`);
         const json = await res.json();
-        if (json?.data) {
-          const count = json.data.filter((product) => product.metadata?.creatorId === uid).length;
-          setProductCount(count);
-        } else {
-          setProductCount(0);
-        }
+
+        const products = Array.isArray(json?.data) ? json.data : [];
+        setCreatorProducts(products);
+        setProductCount(products.length);
       } catch (err) {
-        console.error('Failed to fetch product count:', err);
+        console.error('Failed to fetch creator products:', err);
+        setCreatorProducts([]);
         setProductCount(0);
+      } finally {
+        setLoadingCreatorProducts(false);
       }
     }
 
-    fetchProductCount();
+    fetchCreatorProducts();
   }, [uid]);
 
   useEffect(() => {
@@ -493,26 +498,22 @@ export default function ProfilePage() {
   const visiblePosts = [...showcasePosts, ...defaults.slice(showcasePosts.length)].slice(0, 8);
 
   return (
-    <div className={`${spaceGrotesk.className} min-h-screen px-4 pb-16 pt-32 text-slate-900 sm:px-8`} style={profileSurfaceStyle}>
+    <div className={`${spaceGrotesk.className} min-h-screen px-4 pb-16 pt-24 text-slate-900 sm:px-8 lg:pt-28`} style={profileSurfaceStyle}>
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <section className="relative overflow-hidden rounded-3xl border bg-white shadow-sm" style={{ borderColor: activeTheme.border }}>
           <div
             className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full blur-3xl"
             style={{ backgroundColor: hexToRgba(activeTheme.accent, 0.22) }}
           />
-          <div
-            className="border-b bg-white px-6 py-4 text-xs uppercase tracking-[0.26em] text-slate-500"
-            style={{ borderColor: hexToRgba(activeTheme.accent, 0.2), backgroundColor: hexToRgba(activeTheme.accent, 0.05) }}
-          ></div>
-          <div className="px-6 py-8 sm:px-10">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-7">
+          <div className="px-6 py-6 sm:px-10 sm:py-7">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
               <img
                 src={photoURL}
                 alt={displayName}
-                className="h-28 w-28 shrink-0 rounded-full border-4 border-white object-cover shadow-md ring-1 ring-slate-200"
+                className="h-24 w-24 shrink-0 rounded-full border-4 border-white object-cover shadow-md ring-1 ring-slate-200 sm:h-28 sm:w-28"
               />
               <div className="text-center sm:text-left">
-                <h1 className={`${cormorant.className} text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl`}>
+                <h1 className={`${cormorant.className} text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl`}>
                   {displayName}
                 </h1>
 
@@ -528,12 +529,12 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">{subtext}</p>
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">{subtext}</p>
 
                 {isOwnProfile ? (
                   <button
                     onClick={() => setEditing(!editing)}
-                    className="mt-6 rounded-full px-6 py-2.5 text-sm font-semibold text-white transition hover:brightness-95 active:brightness-90"
+                    className="mt-4 rounded-full px-6 py-2.5 text-sm font-semibold text-white transition hover:brightness-95 active:brightness-90"
                     style={{ backgroundColor: activeTheme.accent, borderColor: activeTheme.accent }}
                   >
                     {editing ? 'Avslutt redigering' : 'Rediger side'}
@@ -542,7 +543,7 @@ export default function ProfilePage() {
                   <button
                     onClick={handleStartChat}
                     disabled={startingChat}
-                    className="mt-6 rounded-full px-6 py-2.5 text-sm font-semibold text-white transition hover:brightness-95 active:brightness-90 disabled:cursor-not-allowed disabled:opacity-70"
+                    className="mt-4 rounded-full px-6 py-2.5 text-sm font-semibold text-white transition hover:brightness-95 active:brightness-90 disabled:cursor-not-allowed disabled:opacity-70"
                     style={{ backgroundColor: activeTheme.accent, borderColor: activeTheme.accent }}
                   >
                     {startingChat ? 'Åpner samtale...' : 'Send melding'}
@@ -550,7 +551,7 @@ export default function ProfilePage() {
                 ) : (
                   <button
                     onClick={() => setShowLogin(true)}
-                    className="mt-6 rounded-full border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                    className="mt-4 rounded-full border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                   >
                     Logg inn for melding
                   </button>
@@ -790,6 +791,45 @@ export default function ProfilePage() {
                     <div className="mt-1 text-sm text-slate-600">
                       {product.currency?.toUpperCase() || 'NOK'} {product.price ?? 0}
                     </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">Produkter fra {displayName}</h2>
+            <span className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-600">
+              {productCount}
+            </span>
+          </div>
+
+          {loadingCreatorProducts ? (
+            <p className="text-slate-600">Laster produkter...</p>
+          ) : creatorProducts.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-slate-600">
+              Denne skaperen har ingen produkter ute ennå.
+            </p>
+          ) : (
+            <div className="-mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-2">
+              {creatorProducts.map((product) => (
+                <a
+                  key={product.id}
+                  href={`/products/${product.id}`}
+                  className="group w-64 shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_rgba(15,23,42,0.1)]"
+                >
+                  <div className="overflow-hidden rounded-xl bg-slate-100">
+                    <img
+                      src={product.images?.[0] || '/placeholder.jpg'}
+                      alt={product.name || 'Produkt'}
+                      className="h-40 w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                    />
+                  </div>
+                  <div className="pt-3">
+                    <div className="truncate text-base font-semibold text-slate-900">{product.name || 'Ukjent produkt'}</div>
+                    <div className="mt-1 text-sm text-slate-600">NOK {product.price ?? 0}</div>
                   </div>
                 </a>
               ))}

@@ -15,6 +15,7 @@ import PostProduct from '../post/PostProduct';
 import { getFirestore, doc, collection, getDocs, updateDoc, getDoc } from 'firebase/firestore';
 import { Space_Grotesk, Roboto } from 'next/font/google';
 import OnboardingNotice from '../components/OnboardingNotice';
+import PaymentInfo from '../components/PaymentInfo';
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -478,6 +479,10 @@ const ImageCropUploader = () => {
             </OnboardingNotice>
             <UploadProductIfSignedIn />
           </section>
+        )}
+
+        {user && (
+          <PaymentInfo activeTheme={activeTheme} />
         )}
 
         {user && (
